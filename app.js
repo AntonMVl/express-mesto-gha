@@ -22,6 +22,9 @@ app.use((req, res, next) => {
 app.use(express.json())
 app.use(userRouter)
 app.use(cardRouter)
+app.use('*', (req, res) => {
+  res.status(404).send({ message: 'Not found path' })
+})
 
 app.listen(port, () => {
   console.log(`Запущен порт ${port}`)

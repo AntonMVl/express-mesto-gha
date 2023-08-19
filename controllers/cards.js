@@ -15,7 +15,9 @@ module.exports.getCards = (req, res) => {
 module.exports.createCard = (req, res) => {
   const { name, link } = req.body
   return cardModel.create({ name, link, owner: req.user._id })
-    .then((r) => { return res.status(HTTP_STATUS_CREATED).send(r) })
+    .then((r) => {
+      return res.status(HTTP_STATUS_CREATED).send(r)
+    })
     .catch((e) => {
       console.log(e)
       if (e instanceof mongoose.Error.ValidationError) {
@@ -53,7 +55,8 @@ module.exports.addCardLike = (req, res) => {
       if (!r) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'Card not found' })
       }
-      return res.status(HTTP_STATUS_OK).send(r) })
+      return res.status(HTTP_STATUS_OK).send(r)
+    })
     .catch((e) => {
       if (e instanceof mongoose.Error.ValidationError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
@@ -87,4 +90,3 @@ module.exports.deleteCardLike = (req, res) => {
       return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
     })
 }
-
