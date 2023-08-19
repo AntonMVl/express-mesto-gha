@@ -8,7 +8,7 @@ module.exports.getUsers = (req, res) => {
       res.status(HTTP_STATUS_OK).send(r)
     })
     .catch((e) => {
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -25,7 +25,7 @@ module.exports.getUserById = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -37,7 +37,7 @@ module.exports.createUser = (req, res) => {
       if (e instanceof mongoose.Error.ValidationError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -52,7 +52,7 @@ module.exports.updateUserData = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -67,6 +67,6 @@ module.exports.updateUserAvatar = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }

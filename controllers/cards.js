@@ -8,7 +8,7 @@ module.exports.getCards = (req, res) => {
       res.status(HTTP_STATUS_OK).send(r)
     })
     .catch((e) => {
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -23,7 +23,7 @@ module.exports.createCard = (req, res) => {
       if (e instanceof mongoose.Error.ValidationError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -41,7 +41,7 @@ module.exports.deleteCard = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Card not found' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -64,7 +64,7 @@ module.exports.addCardLike = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Card not found' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
@@ -87,6 +87,6 @@ module.exports.deleteCardLike = (req, res) => {
       if (e instanceof mongoose.Error.CastError) {
         return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Card not found' })
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
+      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
