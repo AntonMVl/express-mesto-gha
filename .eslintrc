@@ -1,0 +1,8 @@
+{
+  "extends": "airbnb-base"
+}
+{
+  "rules": {
+    "camelcase": ["error", {"allow": ["_id"]}],
+  }
+}
