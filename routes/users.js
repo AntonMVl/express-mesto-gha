@@ -6,5 +6,8 @@ router.post('/users', createUser)
 router.get('/users/:userId', getUserById)
 router.patch('/users/me', updateUserData)
 router.patch('/users/me/avatar', updateUserAvatar)
+router.use((req, res) => {
+  res.status(404).send({ message: 'Not found' })
+})
 
 module.exports = router
