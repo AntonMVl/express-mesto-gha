@@ -21,7 +21,7 @@ module.exports.getUserById = (req, res) => {
     .catch((e) => {
       console.log(e)
       if (e instanceof mongoose.Error.CastError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
+        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'User not found' })
       }
       return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'Server Error' })
     })
