@@ -1,28 +1,30 @@
-const { StatusCodes } = require('http-status-codes')
-const { handleRequestErrors } = require('../errors/handleRequestErrors')
-const NotFoundError = require('../errors/errorClasses/notFoundError')
-const ForbiddenError = require('../errors/errorClasses/forbiddenError')
+const { HTTP_STATUS_CREATED, HTTP_STATUS_OK } = require('http2').constants
 const cardModel = require('../models/card')
 const mongoose = require('mongoose')
+const BadRequestError = require('../errors/BadRequestError')
+const ForbiddenError = require('../errors/ForbiddenError')
+const NotFoundError = require('../errors/NotFoundError')
 
 module.exports.getCards = (req, res, next) => {
   return cardModel.find({})
     .then((r) => {
-      res.status(StatusCodes.CREATED).send(r)
+      res.status(HTTP_STATUS_OK).send(r)
     })
-    .catch((err) => {
-      handleRequestErrors(err, next)
-    })
+    .catch(next)
 }
 
 module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body
   return cardModel.create({ name, link, owner: req.user._id })
-    .then((r) => {
-      return res.status(StatusCodes.CREATED).send(r)
+    .then((card) => {
+      return res.status(HTTP_STATUS_CREATED).send(card)
     })
     .catch((err) => {
-      handleRequestErrors(err, next, { invalidRequestMessage: 'Не удалось создать карточку' })
+      if (err instanceof mongoose.Error.ValidationError) {
+        next(new BadRequestError(err.message))
+      } else {
+        next(err)
+      }
     })
 }
 
@@ -31,20 +33,21 @@ module.exports.deleteCard = (req, res, next) => {
   return cardModel.findByIdAndDelete(cardId)
     .then((card) => {
       if (!card) {
-        return Promise.reject(new NotFoundError('Карточка не найдена'))
+        throw new NotFoundError('Карточка не найдена')
       }
 
       if (card.owner.toString() !== req.user._id.toString()) {
-        return Promise.reject(new ForbiddenError('Недостаточно прав для удаления карточки!'))
+        throw new ForbiddenError('Нельзя удалять карточки других пользователей')
       }
-      return res.status(StatusCodes.CREATED).send(card)
+      return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        handleRequestErrors(err, next, { badRequestMessage: 'Карточка не прошла валидацию' })
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        handleRequestErrors(err, next, { notFoundMessage: 'Карточка не найдена' })
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
+      } else if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
+      } else {
+        return next(err)
       }
     })
 }
@@ -57,16 +60,17 @@ module.exports.addCardLike = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        return Promise.reject(new NotFoundError('Карточка не найдена'))
+        throw new NotFoundError('Карточка не найдена')
       }
-      return res.status(StatusCodes.CREATED).send(card)
+      return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        handleRequestErrors(err, next, { badRequestMessage: 'Карточка не прошла валидацию' })
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        handleRequestErrors(err, next, { notFoundMessage: 'Карточка не найдена' })
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
+      } else if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
+      } else {
+        return next(err)
       }
     })
 }
@@ -79,16 +83,17 @@ module.exports.deleteCardLike = (req, res, next) => {
   )
     .then((card) => {
       if (!card) {
-        return Promise.reject(new NotFoundError('Карточка не найдена'))
+        throw new NotFoundError('Карточка не найдена')
       }
-      return res.status(StatusCodes.CREATED).send(card)
+      return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        handleRequestErrors(err, next, { badRequestMessage: 'Карточка не прошла валидацию' })
-      }
-      if (err instanceof mongoose.Error.CastError) {
-        handleRequestErrors(err, next, { notFoundMessage: 'Карточка не найдена' })
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
+      } else if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
+      } else {
+        return next(err)
       }
     })
 }

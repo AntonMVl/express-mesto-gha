@@ -1,103 +1,113 @@
-const { HTTP_STATUS_BAD_REQUEST, HTTP_STATUS_INTERNAL_SERVER_ERROR, HTTP_STATUS_OK, HTTP_STATUS_CREATED, HTTP_STATUS_NOT_FOUND, HTTP_STATUS_UNAUTHORIZED } = require('http2').constants
+const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = require('http2').constants
+const BadRequestError = require('../errors/BadRequestError')
+const ConflictError = require('../errors/ConflictError')
+const NotFoundError = require('../errors/NotFoundError')
 const userModel = require('../models/user')
-const mongoose = require('mongoose')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const mongoose = require('mongoose')
 
-module.exports.login = (req, res) => {
+module.exports.login = (req, res, next) => {
   const { email, password } = req.body
   return userModel.findUserByCredentials(email, password)
     .then((user) => {
       if (!user) {
-        return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'User not found' })
+        throw new NotFoundError('Пользователь не найден')
       }
       const token = jwt.sign({ _id: user._id }, 'secret-key')
 
       res.cookie('token', token, { maxAge: 3600000 * 24 * 7, httpOnly: true })
       return res.status(HTTP_STATUS_OK).send(user)
     })
-    .catch((e) => {
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
+    .catch((err) => {
+      return next(err)
     })
 }
 
-module.exports.getUsers = (req, res) => {
+module.exports.getUsers = (req, res, next) => {
   return userModel.find({})
-    .then((r) => {
-      res.status(HTTP_STATUS_OK).send(r)
+    .then((user) => {
+      res.status(HTTP_STATUS_OK).send(user)
     })
-    .catch((e) => {
-      res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
+    .catch((err) => {
+      return next(err)
     })
 }
 
-module.exports.getUserById = (req, res) => {
+module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params
   return userModel.findById(userId)
-    .then((r) => {
-      if (!r) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
+    .then((user) => {
+      if (!user) {
+        throw new NotFoundError('Пользователь не найден')
       }
-      return res.status(HTTP_STATUS_OK).send(r)
+      return res.status(HTTP_STATUS_OK).send(user)
     })
-    .catch((e) => {
-      if (e instanceof mongoose.Error.CastError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.CastError) {
+        return next(new BadRequestError(`Некорректный _id: ${req.params.userId}`))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Пользователь по данному _id: ${req.params.userId} не найден.`))
+      } else {
+        return next(err)
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
-module.exports.createUser = (req, res) => {
+module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body
   bcrypt.hash(req.body.password, 10).then(hash => password === hash)
   return userModel.create({ name, about, avatar, email, password })
     .then((r) => { return res.status(HTTP_STATUS_CREATED).send(r) })
-    .catch((e) => {
-      console.log(e)
-      if (e instanceof mongoose.Error.ValidationError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError(err.message))
+      } else if (err.code === 11000) {
+        return next(new ConflictError(`Пользователь с email: ${email} уже зарегистрирован`))
+      } else {
+        return next(err)
       }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
-module.exports.updateUserData = (req, res) => {
+module.exports.updateUserData = (req, res, next) => {
   const { name, about } = req.body
   return userModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
-    .catch((e) => {
-      if (e instanceof mongoose.Error.ValidationError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError(err.message))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
+      } else {
+        return next(err)
       }
-      if (e instanceof mongoose.Error.CastError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body
   return userModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
-    .catch((e) => {
-      if (e instanceof mongoose.Error.ValidationError) {
-        return res.status(HTTP_STATUS_BAD_REQUEST).send({ message: 'Invalid Data' })
+    .catch((err) => {
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError(err.message))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        return next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
+      } else {
+        return next(err)
       }
-      if (e instanceof mongoose.Error.CastError) {
-        return res.status(HTTP_STATUS_NOT_FOUND).send({ message: 'User not found' })
-      }
-      return res.status(HTTP_STATUS_INTERNAL_SERVER_ERROR).send({ message: 'На сервере произошла ошибка' })
     })
 }
 
-module.exports.getCurrentUser = (req, res) => {
-  const currentUser = req.user
-
-  if (!currentUser) {
-    return res.status(HTTP_STATUS_UNAUTHORIZED).json({ message: 'User not found' })
-  }
-
-  return res.status(HTTP_STATUS_OK).send(currentUser)
+module.exports.getCurrentUser = (req, res, next) => {
+  const { userId } = req.user._id
+  return userModel.findById(userId)
+    .then((currentUser) => {
+      if (!currentUser) {
+        throw new NotFoundError('Пользователь не найден')
+      }
+      return res.status(HTTP_STATUS_OK).send(currentUser)
+    })
+    .catch(next)
 }
