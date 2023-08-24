@@ -57,7 +57,7 @@ module.exports.getUserById = (req, res, next) => {
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body
   bcrypt.hash(req.body.password, 10).then(hash => password === hash)
-  return userModel.create({ name, about, avatar, email, password })
+    .then((hash) => { return userModel.create({ name, about, avatar, email, password: hash }) })
     .then((r) => { return res.status(HTTP_STATUS_CREATED).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
