@@ -3,6 +3,8 @@ const app = express()
 const mongoose = require('mongoose')
 const userRouter = require('./routes/users')
 const cardRouter = require('./routes/cards')
+const { login, createUser } = require('./controllers/users')
+const auth = require('./middlewares/auth')
 const port = 3000
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -11,14 +13,9 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('Монго подключена')
 })
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: '64e041d80f6c82f49d5d3063'
-  }
-
-  next()
-})
-
+app.post('/signin', login)
+app.post('/signup', createUser)
+app.use(auth)
 app.use(express.json())
 app.use(userRouter)
 app.use(cardRouter)
