@@ -1,11 +1,12 @@
 const jwt = require('jsonwebtoken')
-const { HTTP_STATUS_UNAUTHORIZED } = require('http2').constants
+const { StatusCodes } = require('http-status-codes')
+const { handleRequestErrors } = require('../errors/handleRequestErrors')
 
 module.exports = (req, res, next) => {
   const { authorization } = req.headers
 
   if (!authorization || !authorization.startsWith('Bearer ')) {
-    return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходима авторизация' })
+    return res.status(StatusCodes.CREATED).send({ message: 'Необходима авторизация' })
   }
 
   const token = authorization.replace('Bearer ', '')
@@ -13,7 +14,7 @@ module.exports = (req, res, next) => {
   try {
     payload = jwt.verify(token, 'secret-key')
   } catch (err) {
-    return res.status(HTTP_STATUS_UNAUTHORIZED).send({ message: 'Необходима авторизация' })
+    handleRequestErrors(err, next, { invalidRequestMessage: 'Не удалось создать пользователя.', conflictMessage: 'Пользователь с таким email уже зарегистрирован' })
   }
 
   req.user = payload
