@@ -20,7 +20,11 @@ module.exports.login = (req, res, next) => {
       return res.status(HTTP_STATUS_OK).send(user)
     })
     .catch((err) => {
-      return next(err)
+      if (err instanceof mongoose.Error.ValidationError) {
+        return next(new BadRequestError(err.message))
+      } else {
+        return next(err)
+      }
     })
 }
 

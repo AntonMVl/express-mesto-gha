@@ -6,6 +6,8 @@ const cardRouter = require('./routes/cards')
 const { login, createUser } = require('./controllers/users')
 const auth = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorMidleware')
+const { celebrate, Joi } = require('celebrate')
+const { httpRegex, emailRegex } = require('./utils/regex')
 const port = 3000
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -14,9 +16,24 @@ mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
   console.log('Монго подключена')
 })
 
-app.post('/signin', login)
-app.post('/signup', createUser)
+app.post('/signin', celebrate({
+  body: Joi.object().keys({
+    email: Joi.string().required().pattern(emailRegex),
+    password: Joi.string().required().min(3)
+  })
+}), login)
+app.post('/signup', celebrate({
+  body: Joi.object().keys({
+    name: Joi.string().min(2).max(30),
+    about: Joi.string().min(2).max(30),
+    avatar: Joi.string().pattern(httpRegex),
+    email: Joi.string().required().pattern(emailRegex),
+    password: Joi.string().required().min(3)
+  })
+}), createUser)
+
 app.use(auth)
+
 app.use(express.json())
 app.use(userRouter)
 app.use(cardRouter)
