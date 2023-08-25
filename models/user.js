@@ -7,43 +7,42 @@ const userSchema = new mongoose.Schema({
   name: {
     type: String,
     default: 'Жак-Ив Кусто',
-    minlength: 2,
-    maxlength: 30
+    minlength: [2, 'Минимальная длина поля 2 символа'],
+    maxlength: [30, 'Максимальная длина поля 30 символов']
   },
   about: {
     type: String,
     default: 'Исследователь',
-    minlength: 2,
-    maxlength: 30
+    minlength: [2, 'Минимальная длина поля 2 символа'],
+    maxlength: [30, 'Максимальная длина поля 30 символов']
   },
   avatar: {
     type: String,
     default: 'https://pictures.s3.yandex.net/resources/jacques-cousteau_1604399756.png',
-    validator: {
+    validate: {
       validator (url) {
         return httpRegex.test(url)
       },
-      message: 'Не правильный URL'
+      message: 'Не верный URL'
     }
   },
   email: {
     type: String,
-    required: true,
-    unique: true,
-    validator: {
+    required: [true, 'Поле должно быть заполнено'],
+    validate: {
       validator (email) {
         return emailRegex.test(email)
       },
-      message: 'Не правильный email'
-    }
+      message: 'Введите верный email'
+    },
+    unique: true
   },
   password: {
     type: String,
-    required: true,
-    minlength: 5,
+    required: [true, 'Поле должно быть заполнено'],
     select: false
   }
-})
+}, { versionKey: false })
 
 userSchema.statics.findUserByCredentials = function (email, password) {
   return this.findOne({ email }).select('+password')
