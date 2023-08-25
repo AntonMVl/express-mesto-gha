@@ -13,7 +13,7 @@ module.exports.login = (req, res, next) => {
     .then((user) => {
       const token = jwt.sign(
         { _id: user._id },
-        'JWT',
+        'secret-key',
         { expiresIn: '7d' }
       )
       res.send({ token })
@@ -60,11 +60,11 @@ module.exports.createUser = (req, res, next) => {
     .then((r) => { return res.status(HTTP_STATUS_CREATED).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(err.message))
+        next(new BadRequestError(err.message))
       } else if (err.code === 11000) {
-        return next(new ConflictError(`Пользователь с email: ${email} уже зарегистрирован`))
+        next(new ConflictError(`Пользователь с email: ${email} уже зарегистрирован`))
       } else {
-        return next(err)
+        next(err)
       }
     })
 }
