@@ -11,20 +11,15 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body
   return userModel.findUserByCredentials(email, password)
     .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь не найден')
-      }
-      const token = jwt.sign({ _id: user._id }, 'secret-key')
-
-      res.cookie('token', token, { maxAge: 3600000 * 24 * 7, httpOnly: true })
-      return res.status(HTTP_STATUS_OK).send(user)
+      const token = jwt.sign(
+        { _id: user._id },
+        'JWT',
+        { expiresIn: '7d' }
+      )
+      res.send({ token })
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(err.message))
-      } else {
-        return next(err)
-      }
+      next(err)
     })
 }
 
