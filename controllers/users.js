@@ -11,11 +11,7 @@ module.exports.login = (req, res, next) => {
   const { email, password } = req.body
   return userModel.findUserByCredentials(email, password)
     .then((user) => {
-      const token = jwt.sign(
-        { _id: user._id },
-        'secret-key',
-        { expiresIn: '7d' }
-      )
+      const token = jwt.sign({ _id: user._id }, 'secret-key', { expiresIn: '7d' })
       res.send({ token })
     })
     .catch((err) => {
@@ -55,18 +51,20 @@ module.exports.getUserById = (req, res, next) => {
 
 module.exports.createUser = (req, res, next) => {
   const { name, about, avatar, email, password } = req.body
-  bcrypt.hash(req.body.password, 10).then(hash => password === hash)
-    .then((hash) => { return userModel.create({ name, about, avatar, email, password: hash }) })
-    .then((r) => { return res.status(HTTP_STATUS_CREATED).send(r) })
-    .catch((err) => {
-      if (err instanceof mongoose.Error.ValidationError) {
-        next(new BadRequestError(err.message))
-      } else if (err.code === 11000) {
-        next(new ConflictError(`Пользователь с email: ${email} уже зарегистрирован`))
-      } else {
-        next(err)
-      }
-    })
+  bcrypt.hash(password, 10)
+    .then((hash) => userModel.create({ name, about, avatar, email, password: hash })
+      .then((user) => res.status(HTTP_STATUS_CREATED).send({
+        name: user.name, about: user.about, avatar: user.avatar, _id: user._id, email: user.email
+      }))
+      .catch((err) => {
+        if (err instanceof mongoose.Error.ValidationError) {
+          next(new BadRequestError(err.message))
+        } else if (err.code === 11000) {
+          next(new ConflictError(`Пользователь с email: ${email} уже зарегистрирован`))
+        } else {
+          next(err)
+        }
+      }))
 }
 
 module.exports.updateUserData = (req, res, next) => {

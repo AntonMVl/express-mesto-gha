@@ -39,24 +39,23 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: [true, 'Поле должно быть заполнено'],
-    select: false
+    required: [true, 'Поле должно быть заполнено']
   }
 }, { versionKey: false })
 
-userSchema.statics.findUserByCredentials = function (email, password) {
+userSchema.statics.findUserByCredentials = function findUserByCredentials (email, password) {
+  console.log(email, password)
   return this.findOne({ email }).select('+password')
     .then((user) => {
+      console.log(user)
       if (!user) {
         throw new UnautorizedError('Неправильные почта или пароль')
       }
-
       return bcrypt.compare(password, user.password)
         .then((matched) => {
           if (!matched) {
             throw new UnautorizedError('Неправильные почта или пароль')
           }
-
           return user
         })
     })

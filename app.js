@@ -5,9 +5,9 @@ const userRouter = require('./routes/users')
 const cardRouter = require('./routes/cards')
 const singinRouter = require('./routes/singin')
 const singupRouter = require('./routes/singup')
-const auth = require('./middlewares/auth')
+// const auth = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorMidleware')
-const { errors } = require('celebrate');
+const { errors } = require('celebrate')
 const port = 3000
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -20,7 +20,7 @@ app.use(express.json())
 app.use(singinRouter)
 app.use(singupRouter)
 
-app.use(auth)
+// app.use(auth)
 
 app.use(userRouter)
 app.use(cardRouter)
