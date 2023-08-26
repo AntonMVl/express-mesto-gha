@@ -1,6 +1,7 @@
 const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = require('http2').constants
 const BadRequestError = require('../errors/BadRequestError')
 const ConflictError = require('../errors/ConflictError')
+const NotFoundError = require('../errors/NotFoundError')
 const userModel = require('../models/user')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
