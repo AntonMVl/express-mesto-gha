@@ -37,9 +37,11 @@ module.exports.getUserById = (req, res, next) => {
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
-        return next(new BadRequestError(`Некорректный _id: ${req.params.userId}`))
+        next(new BadRequestError(`Некорректный _id: ${req.params.userId}`))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError(`Пользователь по данному _id: ${req.params.userId} не найден.`))
       } else {
-        return next(err)
+        next(err);
       }
     })
 }
@@ -69,9 +71,11 @@ module.exports.updateUserData = (req, res, next) => {
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(err.message))
+        next(new BadRequestError(err.message))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
       } else {
-        return next(err)
+        next(err)
       }
     })
 }
@@ -83,11 +87,13 @@ module.exports.updateUserAvatar = (req, res, next) => {
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
-        return next(new BadRequestError(err.message))
+        next(new BadRequestError(err.message))
+      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
       } else {
-        return next(err)
+        next(err)
       }
-    })
+    });
 }
 
 module.exports.getCurrentUser = (req, res, next) => {
