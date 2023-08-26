@@ -98,8 +98,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
 }
 
 module.exports.getCurrentUser = (req, res, next) => {
-  const { userId } = req.user._id
-  return userModel.findById(userId)
+  return userModel.findById(req.user._id)
     .then((currentUser) => {
       if (!currentUser) {
         throw new NotFoundError('Пользователь не найден')

@@ -4,6 +4,7 @@ const { celebrate, Joi } = require('celebrate')
 const { httpRegex, emailRegex } = require('../utils/regex')
 
 router.get('/users', getUsers)
+router.get('/users/me', getCurrentUser)
 
 router.get('/users/:userId', celebrate({
   params: Joi.object().keys({
@@ -30,7 +31,5 @@ router.patch('/users/me/avatar', celebrate({
     avatar: Joi.string().pattern(httpRegex).required()
   })
 }), updateUserAvatar)
-
-router.get('/users/me', getCurrentUser)
 
 module.exports = router
