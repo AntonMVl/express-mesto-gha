@@ -8,6 +8,7 @@ const singupRouter = require('./routes/singup')
 const auth = require('./middlewares/auth')
 const errorHandler = require('./middlewares/errorMidleware')
 const { errors } = require('celebrate')
+const NotFoundError = require('./errors/NotFoundError')
 const port = 3000
 
 mongoose.connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -24,8 +25,8 @@ app.use(auth)
 
 app.use(userRouter)
 app.use(cardRouter)
-app.use('*', (req, res) => {
-  res.status(404).send({ message: 'Not found path' })
+app.use('*', (req, res, next) => {
+  next(new NotFoundError('Not found path!'))
 })
 
 app.use(errors())
