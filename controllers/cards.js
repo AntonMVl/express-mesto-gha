@@ -3,7 +3,6 @@ const cardModel = require('../models/card')
 const mongoose = require('mongoose')
 const BadRequestError = require('../errors/BadRequestError')
 const ForbiddenError = require('../errors/ForbiddenError')
-const NotFoundError = require('../errors/NotFoundError')
 
 module.exports.getCards = (req, res, next) => {
   return cardModel.find({})
@@ -32,20 +31,15 @@ module.exports.createCard = (req, res, next) => {
 module.exports.deleteCard = (req, res, next) => {
   const { cardId } = req.params
   return cardModel.findByIdAndDelete(cardId)
+    .orFail()
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка не найдена')
-      }
-
       if (card.owner.toString() !== req.user._id.toString()) {
         throw new ForbiddenError('Нельзя удалять карточки других пользователей')
       }
       return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
-      } else if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
         return next(err)
@@ -59,16 +53,12 @@ module.exports.addCardLike = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
+    .orFail()
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка не найдена')
-      }
       return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
-      } else if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
         return next(err)
@@ -82,16 +72,12 @@ module.exports.deleteCardLike = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
+    .orFail()
     .then((card) => {
-      if (!card) {
-        throw new NotFoundError('Карточка не найдена')
-      }
       return res.status(HTTP_STATUS_OK).send(card)
     })
     .catch((err) => {
-      if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Карточка с _id: ${req.params.cardId} не найдена.`))
-      } else if (err instanceof mongoose.Error.CastError) {
+      if (err instanceof mongoose.Error.CastError) {
         return next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
         return next(err)

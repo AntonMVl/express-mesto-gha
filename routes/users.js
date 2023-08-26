@@ -1,7 +1,7 @@
 const router = require('express').Router()
-const { getUsers, getUserById, updateUserData, updateUserAvatar, getCurrentUser, createUser } = require('../controllers/users')
+const { getUsers, getUserById, updateUserData, updateUserAvatar, getCurrentUser } = require('../controllers/users')
 const { celebrate, Joi } = require('celebrate')
-const { httpRegex, emailRegex } = require('../utils/regex')
+const { httpRegex } = require('../utils/regex')
 
 router.get('/users', getUsers)
 router.get('/users/me', getCurrentUser)
@@ -11,13 +11,6 @@ router.get('/users/:userId', celebrate({
     userId: Joi.string().length(24).hex().required()
   })
 }), getUserById)
-
-router.post('/users', celebrate({
-  body: Joi.object().keys({
-    email: Joi.string().required().pattern(emailRegex),
-    password: Joi.string().required().min(3)
-  })
-}), createUser)
 
 router.patch('/users/me', celebrate({
   body: Joi.object().keys({

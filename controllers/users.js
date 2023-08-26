@@ -1,7 +1,6 @@
 const { HTTP_STATUS_OK, HTTP_STATUS_CREATED } = require('http2').constants
 const BadRequestError = require('../errors/BadRequestError')
 const ConflictError = require('../errors/ConflictError')
-const NotFoundError = require('../errors/NotFoundError')
 const userModel = require('../models/user')
 const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
@@ -32,17 +31,13 @@ module.exports.getUsers = (req, res, next) => {
 module.exports.getUserById = (req, res, next) => {
   const { userId } = req.params
   return userModel.findById(userId)
+    .orFail()
     .then((user) => {
-      if (!user) {
-        throw new NotFoundError('Пользователь не найден')
-      }
       return res.status(HTTP_STATUS_OK).send(user)
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.CastError) {
         return next(new BadRequestError(`Некорректный _id: ${req.params.userId}`))
-      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Пользователь по данному _id: ${req.params.userId} не найден.`))
       } else {
         return next(err)
       }
@@ -70,12 +65,11 @@ module.exports.createUser = (req, res, next) => {
 module.exports.updateUserData = (req, res, next) => {
   const { name, about } = req.body
   return userModel.findByIdAndUpdate(req.user._id, { name, about }, { new: true, runValidators: true })
+    .orFail()
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError(err.message))
-      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
       } else {
         return next(err)
       }
@@ -85,12 +79,11 @@ module.exports.updateUserData = (req, res, next) => {
 module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body
   return userModel.findByIdAndUpdate(req.user._id, { avatar }, { new: true })
+    .orFail()
     .then((r) => { return res.status(HTTP_STATUS_OK).send(r) })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
         return next(new BadRequestError(err.message))
-      } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
-        return next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
       } else {
         return next(err)
       }
@@ -99,10 +92,8 @@ module.exports.updateUserAvatar = (req, res, next) => {
 
 module.exports.getCurrentUser = (req, res, next) => {
   return userModel.findById(req.user._id)
+    .orFail()
     .then((currentUser) => {
-      if (!currentUser) {
-        throw new NotFoundError('Пользователь не найден')
-      }
       return res.status(HTTP_STATUS_OK).send(currentUser)
     })
     .catch(next)
