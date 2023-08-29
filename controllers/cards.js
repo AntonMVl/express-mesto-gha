@@ -18,7 +18,7 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body
   return cardModel.create({ name, link, owner: req.user._id })
     .then((card) => {
-      return cardModel.populate(card, { path: 'owner' });
+      return cardModel.populate(card, { path: 'owner' })
     })
     .then((populatedCard) => {
       return res.status(HTTP_STATUS_CREATED).send(populatedCard)
@@ -48,7 +48,7 @@ module.exports.deleteCard = (req, res, next) => {
       } else if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
-        next(err);
+        next(err)
       }
     })
 }
@@ -70,7 +70,7 @@ module.exports.addCardLike = (req, res, next) => {
       } else if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
-        next(err);
+        next(err)
       }
     })
 }
@@ -92,7 +92,7 @@ module.exports.deleteCardLike = (req, res, next) => {
       } else if (err instanceof mongoose.Error.CastError) {
         next(new BadRequestError(`Некорректный _id карточки: ${req.params.cardId}`))
       } else {
-        next(err);
+        next(err)
       }
-    });
+    })
 }

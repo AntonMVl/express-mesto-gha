@@ -42,7 +42,7 @@ module.exports.getUserById = (req, res, next) => {
       } else if (err instanceof mongoose.Error.DocumentNotFoundError) {
         next(new NotFoundError(`Пользователь по данному _id: ${req.params.userId} не найден.`))
       } else {
-        next(err);
+        next(err)
       }
     })
 }
@@ -94,7 +94,7 @@ module.exports.updateUserAvatar = (req, res, next) => {
       } else {
         next(err)
       }
-    });
+    })
 }
 
 module.exports.getCurrentUser = (req, res, next) => {
