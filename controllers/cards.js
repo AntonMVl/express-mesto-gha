@@ -7,6 +7,7 @@ const NotFoundError = require('../errors/NotFoundError')
 
 module.exports.getCards = (req, res, next) => {
   return cardModel.find({})
+    .populate(['owner', 'likes'])
     .then((cards) => {
       res.status(HTTP_STATUS_OK).send(cards)
     })
@@ -17,7 +18,10 @@ module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body
   return cardModel.create({ name, link, owner: req.user._id })
     .then((card) => {
-      return res.status(HTTP_STATUS_CREATED).send(card)
+      return cardModel.populate(card, { path: 'owner' });
+    })
+    .then((populatedCard) => {
+      return res.status(HTTP_STATUS_CREATED).send(populatedCard)
     })
     .catch((err) => {
       if (err instanceof mongoose.Error.ValidationError) {
@@ -33,7 +37,7 @@ module.exports.deleteCard = (req, res, next) => {
   return cardModel.findByIdAndDelete(cardId)
     .orFail()
     .then((card) => {
-      if (card.owner.toString() !== req.user._id.toString()) {
+      if (!card.owner.equals(req.user._id)) {
         throw new ForbiddenError('Нельзя удалять карточки других пользователей')
       }
       return res.status(HTTP_STATUS_OK).send(card)
@@ -55,6 +59,7 @@ module.exports.addCardLike = (req, res, next) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
+    .populate(['owner', 'likes'])
     .orFail()
     .then((card) => {
       return res.status(HTTP_STATUS_OK).send(card)
@@ -76,6 +81,7 @@ module.exports.deleteCardLike = (req, res, next) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
+    .populate(['owner', 'likes'])
     .orFail()
     .then((card) => {
       return res.status(HTTP_STATUS_OK).send(card)
