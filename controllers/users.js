@@ -103,5 +103,11 @@ module.exports.getCurrentUser = (req, res, next) => {
     .then((currentUser) => {
       return res.status(HTTP_STATUS_OK).send(currentUser)
     })
-    .catch(next)
+    .catch((err) => {
+      if (err instanceof mongoose.Error.DocumentNotFoundError) {
+        next(new NotFoundError(`Пользователь по данному _id: ${req.user._id} не найден.`))
+      } else {
+        next(err)
+      }
+    })
 }
